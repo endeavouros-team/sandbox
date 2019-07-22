@@ -56,7 +56,7 @@ Main() {
         assets+=("-a" "$asset")
     done
 
-    hub release edit "${assets[@]}" $TAG
+    hub release edit "${assets[@]}" -m "" $TAG
 }
 
 Main "$@"
