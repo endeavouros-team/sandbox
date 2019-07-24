@@ -97,7 +97,8 @@ PrepareGithubInfo() {   # put some useful values to GITHUB_INFO
 
     test -r ~/.config/hub || { echo2 "cannot find ~/.config/hub, is 'hub' installed and initialized?" ; return 1 ; }
 
-    GITHUB_INFO["owner"]="$(grep "user:" ~/.config/hub | awk '{print $NF}')"
+    #GITHUB_INFO["owner"]="$(grep "user:" ~/.config/hub | awk '{print $NF}')"
+    GITHUB_INFO["owner"]="$(grep "https://github.com" .git/config | awk '{print $NF}' | sed -e 's|^https://github.com/||' -e 's|/.*$||')"
     test -n "${GITHUB_INFO["owner"]}" || { echo2 "Owner info is not available." ; return 1 ; }
 
     GITHUB_INFO["oauth_token"]="$(grep "oauth_token:" ~/.config/hub | awk '{print $NF}')"
