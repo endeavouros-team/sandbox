@@ -1,4 +1,2 @@
 # sandbox
-test releases api
-
-testing... Success!
+Packages waiting to be released to official repo.
