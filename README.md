@@ -1,5 +1,7 @@
 # sandbox
-Packages waiting to be released to official repo.
+Experimental and testing stuff:
+- package candidates for the official repo
+
 
 Name | PKGBUILD
 ---- | -------
