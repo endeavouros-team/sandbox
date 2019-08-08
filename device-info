@@ -33,7 +33,7 @@ letters_of() {    # separate letters of $string with spaces
 Main()
 {
     local search_this=""
-    local arg ix xx letters
+    local arg xx letters
 
     test -n "$1" || { Usage "option missing" ; return 1 ; }
 
