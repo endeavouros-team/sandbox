@@ -1,6 +1,7 @@
 #!/bin/bash
-#
-# Fix some basic Xfce4 settings.
+#.
+# EndeavourOS Xfce4 settings (experimental).
+# These are additions to vanilla Xfce settings.
 
 # mouse wheel behaviour
 xfconf-query --channel xfwm4 --property /general/mousewheel_rollup --set false
