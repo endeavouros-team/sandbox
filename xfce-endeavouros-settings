@@ -1,0 +1,14 @@
+#!/bin/bash
+#
+# Fix some basic Xfce4 settings.
+
+# mouse wheel behaviour
+xfconf-query --channel xfwm4 --property /general/mousewheel_rollup --set false
+xfconf-query --channel xfwm4 --property /general/scroll_workspaces --set false
+
+# theme
+xfconf-query --channel xsettings --property /Net/ThemeName     --set Arc-Dark
+xfconf-query --channel xsettings --property /Net/IconThemeName --set Arc
+
+# session
+xfconf-query --channel xfce4-session --property /general/SaveOnExit --set false
