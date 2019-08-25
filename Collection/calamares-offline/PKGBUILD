@@ -1,0 +1,32 @@
+
+pkgname=calamares-offline
+_reponame=EndeavourOS-archiso
+pkgver=1.0
+pkgrel=1
+pkgdesc="EOS offline installer"
+makedepends=(
+    git
+    archiso
+    arch-install-scripts
+)
+arch=(x86_64)
+
+source=(git+https://github.com/endeavouros-team/$_reponame.git)
+md5sums=(SKIP)
+
+build() {
+    local pwd="$PWD"
+    cd $_reponame
+    echo "Building..."
+    sudo ./fix_permissions.sh
+    sudo ./build.sh -v -o /opt
+
+    # cleanup
+    cd "$pwd"
+    sudo rm -rf src $_reponame
+    rm -f ${pkgname}-*.pkg.tar.xz   # no need for it
+}
+
+package() {
+    :
+}
