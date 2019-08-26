@@ -1,0 +1,84 @@
+#!/bin/bash
+# Maintainers: Portergos Linux <portergoslinux@gmail.com>, EndeavourOS info@endeavouros.com
+# Multipurpose installer for arch based distros
+
+#pkgname=calamares_netinstall
+pkgname=calamares_current
+_reponame_clone=Calamares_current
+_reponame=calamares
+pkgver=3.2.12
+pkgrel=2
+# destdir="/usr"
+pkgdesc="calamares installer for arch based distros"
+arch=('any')
+url="https://github.com/endeavouros-team"
+license=('GPL3')
+makedepends=('git' 'cmake' 'extra-cmake-modules')
+conflicts=('calamares_offline' 'calamares_netinstall_test' 'calamares_netinstall')
+depends=(
+    gparted
+    qt5-svg
+    qt5-webengine
+    yaml-cpp
+    networkmanager
+    upower
+    qt5-webengine
+    yaml-cpp
+    boost
+    networkmanager
+    upower
+    partitionmanager
+    kcoreaddons
+    kconfig
+    ki18n
+    kservice
+    kwidgetsaddons
+    kpmcore
+    squashfs-tools
+    rsync
+    cryptsetup
+    qt5-xmlpatterns
+    doxygen
+    dmidecode
+    gptfdisk
+    hwinfo
+    kparts
+    parted
+    polkit-qt5
+    python
+    qt5ct
+    solid
+    qt5-tools)
+
+provides=("${pkgname}")
+options=(!strip !emptydirs)
+source=("git+https://github.com/endeavouros-team/$_reponame_clone.git#branch=master")
+sha256sums=('SKIP')
+
+_constructor() {
+    local FILE_NAME="pack.sh"
+    local URL="https://raw.githubusercontent.com/endeavouros-team/PKGBUILDS/master/$_reponame_clone/$FILE_NAME"
+
+    test -f $FILE_NAME || { wget $URL; chmod +x $FILE_NAME; }
+    source ./$FILE_NAME
+}
+_constructor ; unset -f _constructor
+
+prepare() {
+#_pkgname
+
+_prepare  # selects offline or online
+
+}
+
+build() {
+
+_build
+
+}
+
+package() {
+
+_package
+
+}
