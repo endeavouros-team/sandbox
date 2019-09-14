@@ -1,0 +1,30 @@
+#!/bin/bash
+# PKGBUILD for EndeavourOS-archiso
+
+pkgname=EndeavourOS-archiso
+pkgver=1.0
+pkgrel=1
+pkgdesc="Build EndeavoudOS-archiso"
+
+arch=(any)
+depends=()
+makedepends=(archiso arch-install-scripts git)
+source=(git+https://github.com/endeavouros-team/EndeavourOS-archiso.git)
+sha512sums=(SKIP)
+
+build() {
+    cd $pkgname
+    pwd
+
+    echo "Fixing permissions:"
+    sudo ./fix_permissions.sh
+
+    echo "Building:"
+    sudo ./build.sh -v
+
+    # result is in the 'out' folder
+}
+
+package() {
+    :
+}
