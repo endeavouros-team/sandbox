@@ -26,3 +26,14 @@ build() {
 package() {
     echo Done.
 }
+
+_prepare()
+{
+    local xx
+    for xx in pkg $pkgname ; do
+	test -d $xx && rm -rf $xx
+    done
+    rm -f ${pkgname}-*.pkg.tar.xz
+    test -d src && sudo rm -rf src
+}
+_prepare ; unset -f _prepare
