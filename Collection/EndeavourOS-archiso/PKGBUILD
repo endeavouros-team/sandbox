@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Maintainer: EndeavourOS-Team <info@endeavouros.com>
+
 pkgname=EndeavourOS-archiso
 pkgver=0.1
 pkgrel=1
