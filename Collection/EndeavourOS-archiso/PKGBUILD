@@ -3,7 +3,7 @@
 pkgname=EndeavourOS-archiso
 pkgver=0.1
 pkgrel=1
-pkgdesc="Build EndeavoudOS-archiso"
+pkgdesc="Build EndeavourOS-archiso"
 
 arch=(any)
 depends=()
