@@ -11,7 +11,7 @@ Main() {
 
     cd /usr/share/backgrounds/xfce
     for xx in blue stripes teal ; do
-        rm xfce-$xx.jpg
+        rm -f xfce-$xx.{png,jpg}
         ln -s /usr/share/endeavouros/endeavouros-wallpaper.png xfce-$xx.jpg
     done
 }
