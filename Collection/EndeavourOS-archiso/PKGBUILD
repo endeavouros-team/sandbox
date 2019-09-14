@@ -1,5 +1,4 @@
 #!/bin/bash
-# PKGBUILD for EndeavourOS-archiso
 
 pkgname=EndeavourOS-archiso
 pkgver=1.0
@@ -14,7 +13,6 @@ sha512sums=(SKIP)
 
 build() {
     cd $pkgname
-    pwd
 
     echo "Fixing permissions:"
     sudo ./fix_permissions.sh
@@ -22,9 +20,9 @@ build() {
     echo "Building:"
     sudo ./build.sh -v
 
-    # result is in the 'out' folder
+    ls -1 $srcdir/$pkgname/out/*
 }
 
 package() {
-    :
+    echo Done.
 }
