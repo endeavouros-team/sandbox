@@ -35,7 +35,6 @@ _prepare()
 
     echo "Removing previous build files:"
     sudo rm -rf src
-
     for xx in pkg $pkgname ; do
 	test -d $xx && rm -rf $xx
     done
