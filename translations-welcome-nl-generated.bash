@@ -1,6 +1,6 @@
 # Automatic translation (language: nl) for the Welcome app.
 
-_tr_lang=nl
+_tr_lang=nl          # Dutch
 
 _exclamation='&#33;' # '!'
 _and='&#38;'         # '&'
