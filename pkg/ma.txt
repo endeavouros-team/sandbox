@@ -1,0 +1,8 @@
+emacs
+code
+ncdu
+terminator
+rcs
+meld
+gufw
+solaar
