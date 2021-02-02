@@ -2,6 +2,7 @@ emacs
 code
 ncdu
 terminator
+linux-lts linux-lts-headers
 rcs
 meld
 gufw
