@@ -43,7 +43,7 @@ Lista olennaisista muutoksista ja parannuksista sekalaisessa järjestyksessä:
 - GVFS-paketteja asennetaan vain GTK-ympäristössä
 - Qt-ympäristössä asennetaan paketit `kio-fuse` `kio-gdrive` `audiocd-kio` oletuksena
 - Pakettien sddm ja lightdm konfiguraatiotiedostot asennetaan vain tarpeen mukaan, ei enää molempia
-- Voit lisätä omia suosikkipakettejasi asennettaviksi! Tähän on kaksi tapaa:
+- Voit lisätä suosikkipakettejasi asennettaviksi! Tähän on kaksi tapaa:
   - tiedosto `/home/liveuser/user_pkglist.txt`, johon yksinkertaisesti lisäät pakettien nimet (rivinvaihdoin tai välilyönnein eroteltuina)
   - Welcome:n uusi valitsin: `--pkglist=URL`. Tässä URL on internet-osoite haluamaasi tiedostoon, joka sisältää listan lisäpaketteja (kuten edellä)
 - Useita virhekorjauksia
