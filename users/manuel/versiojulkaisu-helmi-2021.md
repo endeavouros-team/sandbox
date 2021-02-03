@@ -28,7 +28,7 @@ Muutamia poimintoja:
 
 ## Parannukset
 
-Olemme parantaneet Live-ympäristöä (eli asentajaympäristöä) ja asennusprosessia tavoitteena tehdä asennuksesta entistäkin sujuvampaa. Esimerkiksi käyttäjä voi nyt itse vaikuttaa mitä paketteja asennetaan!
+Olemme parantaneet Live-ympäristöä (eli asentajaympäristöä) ja asennusprosessia tavoitteena tehdä asennuksesta entistäkin sujuvampaa. Esimerkiksi käyttäjä voi nyt itse vaikuttaa mitä haluamiasi lisäpaketteja asennetaan!
 
 Lista olennaisista muutoksista ja parannuksista sekalaisessa järjestyksessä:
 - Paketti reflector-auto on poistettu, koska paketissa reflector on samat ominaisuudet.
@@ -43,7 +43,7 @@ Lista olennaisista muutoksista ja parannuksista sekalaisessa järjestyksessä:
 - GVFS-paketteja asennetaan vain GTK-ympäristössä
 - Qt-ympäristössä asennetaan paketit `kio-fuse` `kio-gdrive` `audiocd-kio` oletuksena
 - Pakettien sddm ja lightdm konfiguraatiotiedostot asennetaan vain tarpeen mukaan, ei enää molempia
-- Asennukseen voi lisätä omia suosikkipaketteja! Tähän on kaksi tapaa:
+- Voit lisätä omia suosikkipakettejasi asennettaviksi! Tähän on kaksi tapaa:
   - tiedosto `/home/liveuser/user_pkglist.txt`, johon yksinkertaisesti lisäät pakettien nimet (rivinvaihdoin tai välilyönnein eroteltuina)
   - Welcome:n uusi valitsin: `--pkglist=URL`. Tässä URL on internet-osoite haluamaasi tiedostoon, joka sisältää listan lisäpaketteja (kuten edellä)
 - Useita virhekorjauksia
