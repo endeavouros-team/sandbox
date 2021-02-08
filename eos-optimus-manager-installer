@@ -2,7 +2,7 @@
 
 ##### EXPERIMENTAL !!! ######
 
-# Version: 2021.02.08-1
+# Version: 2021.02.08-2
 
 # Help installing optimus manager for Nvidia-Intel and Nvidia-AMD systems.
 
@@ -74,15 +74,19 @@ OptimusInstall_makepkg() {
     local pkg pkgs
 
     case "$DE" in
-        KDE) pkgs=(python-py3nvml optimus-manager-git optimus-manager-qt-git) ;;
-        *)   pkgs=(optimus-manager) ;;
+        KDE | LXQT | DEEPIN)
+            pkgs=(python-py3nvml optimus-manager-git optimus-manager-qt-git) ;;
+        *)
+            pkgs=(optimus-manager) ;;
     esac
     
     for pkg in "${pkgs[@]}" ; do
         yay -Ga $pkg || DIE "fetching the PKGBUILD of $pkg failed"
         Pushd $pkg
-        if [ "$pkg" = "optimus-manager-qt-git" ] && [ "$DE" = "KDE" ] ; then
-            sed -i PKGBUILD -e 's|^_with_plasma=false$|_with_plasma=true|'
+        if [ "$pkg" = "optimus-manager-qt-git" ] ; then
+            case "$DE" in
+                KDE) sed -i PKGBUILD -e 's|^_with_plasma=false$|_with_plasma=true|' ;;   # only for KDE
+            esac
         fi
         makepkg -si || DIE "'makepkg -si' for $pkg failed"
         Popd
