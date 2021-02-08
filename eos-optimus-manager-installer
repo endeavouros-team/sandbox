@@ -2,19 +2,21 @@
 
 ##### EXPERIMENTAL !!! ######
 
-# Version: 2021.02.08-2
+# Version: 2021.02.08-3
 
 # Help installing optimus manager for Nvidia-Intel and Nvidia-AMD systems.
 
+echo2() { echo "$@" >&2 ; }
+
 DIE() {
-    echo "$progname: error: $1" >&2
+    echo2 "$progname: error: $1"
     if [ -n "$tmpdir" ] && [ -d "$tmpdir" ] ; then
-        echo "Note: folder $tmpdir may contain useful debugging info." >&2
+        echo2 "Note: folder $tmpdir may contain useful debugging info."
     fi
     exit 1
 }
 STOP() {
-    echo "$progname: $1" >&2
+    echo2 "$progname: $1"
     exit 0
 }
 
@@ -35,6 +37,21 @@ InstallNeeded () {
     if (! IsInstalled "$pkg") ; then
         sudo pacman -S "$pkg"
     fi
+}
+
+CheckDM() {
+    local data=$(systemctl list-units)
+    local dm
+
+    for dm in sddm lightdm gdm ; do
+        if [ -n "$(echo "$data" | grep -w "$dm\.service" | grep -w running)" ] ; then
+            echo2 "DM: OK ($dm)"
+            return 0
+        fi
+    done
+    echo2 "Your Display Manager is not supported or does not exist."
+    echo2 "Please see: https://github.com/Askannz/optimus-manager how to proceed."
+    return 1
 }
 
 DetectGPUs() {
@@ -103,11 +120,43 @@ OptimusInstall() {
     rm -rf $tmpdir
 }
 
+Options() {
+    local arg
+
+    for arg in "$@" ; do
+        case "$arg" in
+            --no-dm) do_dm_check=no ;;
+
+            --help | -h) cat <<EOF
+Usage: $progname [options]
+Options:
+    --help | -h    This help.
+    --skip-dm      Skip checking the Display Manager.
+EOF
+                         exit 0
+                         ;;
+            -*) DIE "unsupported option $arg" ;;
+            *) DIE "unsupported parameter $arg" ;;
+        esac
+    done
+}
+
 Main()
 {
+    local progname="$(basename "$0")"
+    local do_dm_check=yes
+
+    Options "$@"
+
     local DE=$(eos_yad_GetDesktopName)
     local GPUs=$(DetectGPUs)
     local prefix=""
+
+    if [ "$do_dm_check" = "yes" ] ; then
+        if (! CheckDM) ; then
+            Options --help
+        fi
+    fi
 
     # Check if we have an optimus machine:
 
