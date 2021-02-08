@@ -1,0 +1,143 @@
+#!/bin/bash
+
+##### EXPERIMENTAL !!! ######
+
+# Version: 2021.02.08-1
+
+# Help installing optimus manager for Nvidia-Intel and Nvidia-AMD systems.
+
+DIE() {
+    echo "$progname: error: $1" >&2
+    if [ -n "$tmpdir" ] && [ -d "$tmpdir" ] ; then
+        echo "Note: folder $tmpdir may contain useful debugging info." >&2
+    fi
+    exit 1
+}
+STOP() {
+    echo "$progname: $1" >&2
+    exit 0
+}
+
+source /usr/share/endeavouros/scripts/eos-script-lib-yad || DIE "no script lib found"
+
+export -f eos_yad__detectDE
+export -f eos_yad_GetDesktopName
+
+Pushd() { pushd "$@" >/dev/null || DIE "'$FUNCNAME $*' failed" ; }
+Popd()  { popd  "$@" >/dev/null ; }
+
+IsInstalled() {
+    local pkg="$1"
+    pacman -Q "$pkg" >& /dev/null
+}
+InstallNeeded () {
+    local pkg="$1"
+    if (! IsInstalled "$pkg") ; then
+        sudo pacman -S "$pkg"
+    fi
+}
+
+DetectGPUs() {
+    local data="$(device-info --graphics)"   # lspci -vnn | grep -Pw '3D|Display|VGA'
+    local result
+    local nvidia=no
+    local intel=no
+    local amd=no
+
+    # Find what GPU hardware we have
+    [ -n "$(echo "$data" | grep -w NVIDIA)" ] && nvidia=yes
+    [ -n "$(echo "$data" | grep -w Intel)" ]  && intel=yes
+    [ -n "$(echo "$data" | grep -w AMD)" ]    && amd=yes
+
+    # Now check various GPU combinations
+    if [ "$nvidia" = "yes" ] ; then
+        result="nvidia"
+        [ "$intel" = "yes" ] && result+="-intel"
+        [ "$amd"   = "yes" ] && result+="-amd"
+        echo "$result"
+        return
+    fi
+    if [ "$amd" = "yes" ] ; then
+        result="amd"
+        [ "$intel" = "yes" ] && result+="-intel"
+        echo result
+        return
+    fi
+    if [ "$intel" = "yes" ] ; then
+        echo "intel"
+        return
+    fi
+    echo "ERROR"
+}
+
+OptimusInstall_makepkg() {
+    local pkg pkgs
+
+    case "$DE" in
+        KDE) pkgs=(python-py3nvml optimus-manager-git optimus-manager-qt-git) ;;
+        *)   pkgs=(optimus-manager) ;;
+    esac
+    
+    for pkg in "${pkgs[@]}" ; do
+        yay -Ga $pkg || DIE "fetching the PKGBUILD of $pkg failed"
+        Pushd $pkg
+        if [ "$pkg" = "optimus-manager-qt-git" ] && [ "$DE" = "KDE" ] ; then
+            sed -i PKGBUILD -e 's|^_with_plasma=false$|_with_plasma=true|'
+        fi
+        makepkg -si || DIE "'makepkg -si' for $pkg failed"
+        Popd
+    done
+}
+
+OptimusInstall() {
+    local tmpdir=$(mktemp -d)
+    Pushd $tmpdir
+
+    OptimusInstall_makepkg
+
+    Popd
+    rm -rf $tmpdir
+}
+
+Main()
+{
+    local DE=$(eos_yad_GetDesktopName)
+    local GPUs=$(DetectGPUs)
+    local prefix=""
+
+    # Check if we have an optimus machine:
+
+    case "$GPUs" in
+        nvidia-intel | nvidia-amd)
+            nvidia-installer-check
+            case "$?" in
+                0) ;;
+                1) return 1 ;;
+                2) STOP "Your Nvidia card is supported by nvidia-390xx-dkms. Please install optimus-manager manually." ;;
+            esac
+            ;;
+        *)
+            STOP "Optimus GPU cards (either 'NVIDIA + Intel' or 'NVIDIA + AMD') not detected."
+            ;;
+    esac
+
+    # Optimus card hardware detected. Install optimus manager:
+
+    OptimusInstall
+
+    # Install GPU drivers:
+
+    case "$GPUs" in
+        nvidia-intel)
+            InstallNeeded nvidia-dkms
+            IsInstalled xf86-video-intel && prefix=un
+            echo "Note: if Intel video causes issues, ${prefix}installing xf86-video-intel may be needed."
+            ;;
+        nvidia-amd)
+            InstallNeeded xf86-video-amdgpu
+            echo "Note: if AMD video does causes issues, consider installing xf86-video-ati instead of xf86-video-amdgpu."
+            ;;
+    esac
+}
+
+Main "$@"
