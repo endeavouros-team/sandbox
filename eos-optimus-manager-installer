@@ -2,7 +2,7 @@
 
 ##### EXPERIMENTAL !!! ######
 
-# Version: 2021.02.08-3
+# Version: 2021.02.08-4
 
 # Help installing optimus manager for Nvidia-Intel and Nvidia-AMD systems.
 
@@ -184,11 +184,11 @@ Main()
         nvidia-intel)
             InstallNeeded nvidia-dkms
             IsInstalled xf86-video-intel && prefix=un
-            echo "Note: if Intel video causes issues, ${prefix}installing xf86-video-intel may be needed."
+            echo2 "Note: if Intel video causes issues, ${prefix}installing xf86-video-intel may be needed."
             ;;
         nvidia-amd)
             InstallNeeded xf86-video-amdgpu
-            echo "Note: if AMD video does causes issues, consider installing xf86-video-ati instead of xf86-video-amdgpu."
+            echo2 "Note: if AMD video does causes issues, consider installing xf86-video-ati instead of xf86-video-amdgpu."
             ;;
     esac
 }
