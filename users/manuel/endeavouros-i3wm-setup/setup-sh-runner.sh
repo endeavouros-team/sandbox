@@ -54,41 +54,58 @@ GetNewUserName() {
 }
 
 Main() {
-    local progname="$(basename "$0")"
-    # REPONAME examples:
-    #    endeavouros-i3wm-setup
-    #    https://github.com/endeavouros-team/endeavouros-i3wm-setup.git
+    local progname="$(basename "$0")"   # used in all error messages
+
+    INFO "running $progname to handle setup.sh"
 
     local REPONAME="$1"
     [ -n "$REPONAME" ] || DIE "must give repository name or URL to it."
+
     local NEW_USER="$(GetNewUserName)"
     [ -n "$NEW_USER" ] || DIE "Cannot set variable NEW_USER."
-    local tmpdir=$(mktemp -d)
 
+    local tmpdir=$(mktemp -d)      # here we work
     pushd $tmpdir >/dev/null
 
+    # check the format of REPONAME:
     case "$REPONAME" in
-        *://*) ;;
-        *) REPONAME="https://github.com/endeavouros-team/$REPONAME.git" ;;
+        *://*) ;;                                                           # any git-based URL
+        *) REPONAME="https://github.com/endeavouros-team/$REPONAME.git" ;;  # EndeavourOS repo name from github
     esac
 
-    echo "===> $progname: $info: user=$NEW_USER, repo=$REPONAME."
+    INFO "user=$NEW_USER, repo=$REPONAME."
 
+    # clone the $REPONAME here
     git clone "$REPONAME" || DIE "cloning '$REPONAME' failed."
+
+    # go to the actual "working" folder
     cd "$REPONAME"
 
+    # check if we have setup.sh
     [ -r setup.sh ] || DIE "repo does not have file setup.sh!"
 
+    # setup.sh should contain this function:
     local required_func=CopyConfigsToUser
     unset -f $required_func
 
+    # read setup.sh contents
     source ./setup.sh || DIE "reading setup.sh failed!"
+
+    # check that setup.sh has the required function:
     declare -F $required_func >/dev/null || DIE "setup.sh does not contain function $required_func"
 
-    $required_func || WARN "runnning setup.sh failed."
+    # run the function from setup.sh
+    $required_func || DIE "running setup.sh failed."
 
+    # cleanup
     popd >/dev/null
     rm -rf $tmpdir
+
+    INFO "$progname succeeded."
 }
 
-Main "$@"
+Main "$@"    # needs REPONAME parameter
+
+# REPONAME examples:
+#    endeavouros-i3wm-setup
+#    https://github.com/endeavouros-team/endeavouros-i3wm-setup.git
