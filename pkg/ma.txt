@@ -1,6 +1,8 @@
 code
 emacs
 gufw
+kaffeine
+libreoffice-fresh
 linux-lts linux-lts-headers
 meld
 ncdu
@@ -8,3 +10,6 @@ paru
 rcs
 solaar
 terminator
+
+atril
+simple-scan
