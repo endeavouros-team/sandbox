@@ -1,16 +1,33 @@
-code
-emacs
-gufw
-kaffeine
-libreoffice-fresh
-linux-lts linux-lts-headers
-meld
-ncdu
-paru
-rcs
-solaar
-terminator
+Install=(
+    atril
+    code
+    emacs
+    gufw
+    #kaffeine
+    #libreoffice-fresh
+    linux-lts linux-lts-headers
+    llpp
+    meld
+    mpv
+    ncdu
+    rcs
+    simple-scan
+    solaar
+    terminator
+)
 
-atril
-llpp
-simple-scan
+Remove=(
+    r8168
+    adobe-source-han-sans-jp-fonts
+    adobe-source-han-sans-kr-fonts
+    adobe-source-han-sans-cn-fonts
+    glances
+    s-tui
+    keyserver-rank
+    parole
+    mousepad
+    xed
+    blueberry
+    capitaine-cursors
+    file-roller
+)
