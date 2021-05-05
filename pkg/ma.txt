@@ -2,6 +2,7 @@ Install=(
     atril
     code
     emacs
+    gparted
     gufw
     #kaffeine
     #libreoffice-fresh
