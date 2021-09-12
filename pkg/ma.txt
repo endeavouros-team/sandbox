@@ -31,6 +31,7 @@ export LESS="-RF"
 PS1='\w> '
 
 EOF
+  chown $new_user:$new_user $home/.bashrc    # not really needed if it already exists
 }
 
 EmacsConfig() {
@@ -58,6 +59,7 @@ EmacsConfig() {
  '(vc-follow-symlinks t)
  '(x-select-enable-clipboard-manager nil))
 EOF
+  chown $new_user:$new_user $home/.emacs
 }
 
 Main() {
