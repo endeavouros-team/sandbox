@@ -110,6 +110,7 @@ Main() {
   if [ -n "$new_user" ] && [ -d $home ] ; then
     # Add here some user specific stuff!
     EmacsConfig
+    BashrcConfig
   fi  
 
   pacman -Rsn --noconfirm "${Remove[@]}"
