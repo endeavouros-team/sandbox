@@ -39,7 +39,7 @@ Remove=(
 pacman -Rsn --noconfirm "${Remove[@]}"
 pacman -S --noconfirm --needed "${Install[@]}"
 sleep 1
-mkinitcpio -P
+mkinitcpio -p linux-lts
 sleep 1
 grub-mkconfig -o /boot/grub/grub.cfg
 systemctl enable ufw
