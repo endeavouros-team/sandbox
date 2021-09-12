@@ -1,5 +1,38 @@
 #!/bin/bash
 
+BashrcConfig() {
+  cat <<EOF >> $home/.bashrc
+
+alias l='ls -la --ignore=.?*'
+alias ll='ls -la --ignore=..'
+
+alias cp='cp -i'
+alias mv='mv -i'
+alias rm='rm -i'
+alias ln='ln -i'
+
+alias nano='nano -l'
+alias pacdiff=eos-pacdiff
+
+alias poweroff='sync; poweroff'
+alias reboot='sync; reboot'
+alias update-grub='grub-mkconfig -o /boot/grub/grub.cfg'
+alias df='df -hT'
+alias md='code-oss -n'             # Visual Studio Code as a markdown editor
+alias sou='source ~/.bashrc'       # re-read ~/.bashrc
+
+bind '"\e[A":history-search-backward'      # history with arrow up key
+bind '"\e[B":history-search-forward'       # history with arrow down key
+bind 'set show-all-if-ambiguous on'        # complete with single TAB
+bind 'set mark-symlinked-directories on'   # complete directory symlinks with slash
+
+export LESS="-RF"
+
+PS1='\w> '
+
+EOF
+}
+
 EmacsConfig() {
   cat <<EOF > $home/.emacs
 (custom-set-variables
