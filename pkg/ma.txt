@@ -11,7 +11,7 @@ Install=(
     #libreoffice-fresh
     linux-lts linux-lts-headers
     llpp
-    meld
+    #meld
     mpv
     ncdu
     rcs
@@ -21,7 +21,7 @@ Install=(
 )
 
 Remove=(
-    r8168
+    #r8168
     adobe-source-han-sans-jp-fonts
     adobe-source-han-sans-kr-fonts
     adobe-source-han-sans-cn-fonts
@@ -29,13 +29,17 @@ Remove=(
     s-tui
     keyserver-rank
     parole
-    mousepad
+    #mousepad
     xed
-    blueberry
+    #blueberry
     capitaine-cursors
     file-roller
 )
 
 pacman -Rsn --noconfirm "${Remove[@]}"
 pacman -S --noconfirm --needed "${Install[@]}"
+sleep 1
+mkinitcpio -P
+sleep 1
+grub-mkconfig -o /boot/grub/grub.cfg
 systemctl enable ufw
