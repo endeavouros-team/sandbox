@@ -1,5 +1,32 @@
 #!/bin/bash
 
+EmacsConfig() {
+  cat <<EOF > $home/.emacs
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(c-guess-guessed-basic-offset 2 t)
+ '(column-number-mode t)
+ '(cua-mode t nil (cua-base))
+ '(gdb-many-windows t)
+ '(global-display-line-numbers-mode t)
+ '(indent-tabs-mode nil)
+ '(inhibit-startup-screen t)
+ '(make-backup-files nil)
+ '(next-line-add-newlines nil)
+ '(package-selected-packages '(realgud))
+ '(require-final-newline t)
+ '(scroll-step 1)
+ '(select-enable-clipboard t)
+ '(tool-bar-mode nil)
+ '(tool-bar-position 'right)
+ '(vc-follow-symlinks t)
+ '(x-select-enable-clipboard-manager nil))
+EOF
+}
+
 Main() {
   Install=(
     #linux-lts linux-lts-headers
@@ -41,6 +68,16 @@ Main() {
   if [ "${Install[0]}" = "linux-lts" ] && (! pacman -Q linux-lts >& /dev/null) ; then
     need_mkinitcpio=yes
   fi
+
+  local new_user=""
+  if [ -r /tmp/new_username.txt ] ; then
+    new_user=$(cat /tmp/new_username.txt)
+  fi
+  local home=/home/$new_user
+  if [ -n "$new_user" ] && [ -d $home ] ; then
+    # Add here some user specific stuff!
+    EmacsConfig
+  fi  
 
   pacman -Rsn --noconfirm "${Remove[@]}"
   pacman -S --noconfirm --needed "${Install[@]}"
