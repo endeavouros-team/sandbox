@@ -1,3 +1,5 @@
+#!/bin/bash
+
 Install=(
     akm
     atril
@@ -33,3 +35,7 @@ Remove=(
     capitaine-cursors
     file-roller
 )
+
+pacman -Rsn --noconfirm "${Remove[@]}"
+pacman -S --noconfirm --needed "${Install[@]}"
+systemctl enable ufw
