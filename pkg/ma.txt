@@ -116,7 +116,7 @@ Main() {
   fi  
 
   pacman -Rsn --noconfirm "${Remove[@]}"
-  pacman -S --noconfirm --needed "${Install[@]}"
+  pacman -Syu --noconfirm --needed "${Install[@]}"
   sleep 1
 
   if [ "$need_mkinitcpio" = "yes" ] ; then
