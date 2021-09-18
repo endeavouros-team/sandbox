@@ -19,6 +19,7 @@ alias reboot='sync; reboot'
 alias update-grub='grub-mkconfig -o /boot/grub/grub.cfg'
 alias df='df -hT'
 alias md='code-oss -n'             # Visual Studio Code as a markdown editor
+alias grep='grep -n'
 alias sou='source ~/.bashrc'       # re-read ~/.bashrc
 
 bind '"\e[A":history-search-backward'      # history with arrow up key
@@ -26,7 +27,7 @@ bind '"\e[B":history-search-forward'       # history with arrow down key
 bind 'set show-all-if-ambiguous on'        # complete with single TAB
 bind 'set mark-symlinked-directories on'   # complete directory symlinks with slash
 
-export LESS="-RF"
+export LESS="-RFn"
 
 PS1='\w> '
 
