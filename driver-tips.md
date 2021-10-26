@@ -7,7 +7,7 @@ Table of Contents
 
 Here is a small collection of tips related to various drivers.
 
-## Intel RST
+## Intel_RST
 
 If your machine does not have Intel RST, you can disable the `vmd` kernel module
 by removing word **vmd** from the MODULES variable in file `/etc/mkinitcpio.conf`.<br>
@@ -27,7 +27,7 @@ To check that the kernel module has been removed, the following command should g
 lsmod | grep vmd
 ```
 
-## Realtek 8168
+## Realtek_8168
 
 This applies to machines with the Realtek 8168 Ethernet controller.
 Linux kernel includes a driver `r8169` by default. Some (new) machines *may* require the `r8168` driver package.
