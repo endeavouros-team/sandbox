@@ -1,7 +1,7 @@
 Table of Contents
 
-1. [Intel RST](driver-tips.md#Intel%20RST)
-2. [Realtek 8168](driver-tips.md#Realtek%208168)
+1. [Intel RST](driver-tips.md#Intel_RST)
+2. [Realtek 8168](driver-tips.md#Realtek_8168)
 
 # Driver tips
 
