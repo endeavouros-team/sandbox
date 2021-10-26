@@ -41,10 +41,12 @@ To check which driver is in use, run command
 lsmod | grep -Pw 'r8168|r8169'
 ```
 
-If your machine has problems with the Ethernet connection, blacklist either r8169 or r8168.<br>
-See file `/usr/lib/modprobe.d/r8168.conf`.
+If your machine has problems with the Ethernet connection, blacklist either r8169 or r8168 and reboot.<br>
+Blacklisting can be done in file `/usr/lib/modprobe.d/r8168.conf`.
 
 Another simple action is to
 - reinstall package r8168<br>
   or
 - uninstall package r8168
+
+and reboot.
