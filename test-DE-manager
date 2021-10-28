@@ -40,7 +40,9 @@ Analyze() {
                 continue 2
             fi
         done
-        uninstallPkg+=("$uu")
+        if pacman -Q "$uu" >& /dev/null ; then
+            uninstallPkg+=("$uu")
+        fi
     done
 }
 
