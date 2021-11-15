@@ -1167,7 +1167,7 @@ ethernet_use_8168() {
 export -f ethernet_use_8168
 
 R8168check_at_install() {
-    local card8168="$(lspci | grep -w Ethernet | grep -w Realtek | grep -w 8168 )"
+    local card8168="$(lspci -vnn | grep -w Ethernet | grep -w Realtek | grep -w 8168 )"
     if [ -n "$card8168" ] ; then
         # we have 8618 card
         local cardid="$(echo "$card8168" | sed 's|.*\[\([^]]*\)\].*|\1|')"    # e.g. "10ec:8168"
