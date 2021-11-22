@@ -1,7 +1,9 @@
 #!/bin/bash
 
 BashrcConfig() {
-  cat <<EOF >> $home/.bashrc
+    [ -n "$new_user" ] || return
+
+    cat <<EOF >> $home/.bashrc
 
 alias l='ls -la --ignore=.?*'
 alias ll='ls -la --ignore=..'
@@ -32,11 +34,14 @@ export LESS="-RFn"
 PS1='\w> '
 
 EOF
-  chown $new_user:$new_user $home/.bashrc    # not really needed if it already exists
+    chown $new_user:$new_user $home/.bashrc    # not really needed if it already exists
 }
 
 EmacsConfig() {
-  cat <<EOF > $home/.emacs
+    [ -n "$new_user" ] || return
+    [ -x /usr/bin/emacs ] || return
+
+    cat <<EOF > $home/.emacs
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -60,72 +65,69 @@ EmacsConfig() {
  '(vc-follow-symlinks t)
  '(x-select-enable-clipboard-manager nil))
 EOF
-  chown $new_user:$new_user $home/.emacs
+    chown $new_user:$new_user $home/.emacs
+}
+
+GetNewUserName() {
+    if [ -r /tmp/new_username.txt ] ; then
+        new_user=$(cat /tmp/new_username.txt)
+    fi
+}
+
+HomeSettings() {
+    # Add here some user specific stuff!
+    if [ -n "$new_user" ] && [ -d $home ] ; then
+        EmacsConfig
+        BashrcConfig
+    fi  
 }
 
 Main() {
-  Install=(
-    #linux-lts linux-lts-headers
-    akm
-    atril
-    code
-    emacs
-    gparted
-    gufw
-    #kaffeine
-    #libreoffice-fresh
-    llpp
-    #meld
-    mpv
-    ncdu
-    rcs
-    simple-scan
-    solaar
-    terminator
-  )
+    local new_user=""
+    GetNewUserName
+    local home="/home/$new_user"
 
-  Remove=(
-    #r8168
-    adobe-source-han-sans-jp-fonts
-    adobe-source-han-sans-kr-fonts
-    adobe-source-han-sans-cn-fonts
-    glances
-    s-tui
-    keyserver-rank
-    parole
-    #mousepad
-    xed
-    #blueberry
-    capitaine-cursors
-    file-roller
-  )
-  local need_mkinitcpio=no
+    Install=(   # packages to install
+        akm
+        atril
+        code
+        emacs
+        gparted
+        gufw
+        #kaffeine
+        #libreoffice-fresh
+        llpp            # fast PDF reader for complex PDF files
+        mpv
+        ncdu
+        #rcs
+        simple-scan
+        solaar
+        terminator
+    )
 
-  if [ "${Install[0]}" = "linux-lts" ] && (! pacman -Q linux-lts >& /dev/null) ; then
-    need_mkinitcpio=yes
-  fi
+    Remove=(    # packages to remove
+        adobe-source-han-sans-jp-fonts
+        adobe-source-han-sans-kr-fonts
+        adobe-source-han-sans-cn-fonts
+        glances
+        s-tui
+        parole
+        #mousepad
+        #xed
+        #blueberry
+        capitaine-cursors
+        file-roller
+    )
 
-  local new_user=""
-  if [ -r /tmp/new_username.txt ] ; then
-    new_user=$(cat /tmp/new_username.txt)
-  fi
-  local home=/home/$new_user
-  if [ -n "$new_user" ] && [ -d $home ] ; then
-    # Add here some user specific stuff!
-    EmacsConfig
-    BashrcConfig
-  fi  
+    pacman -Rsn --noconfirm "${Remove[@]}"
+    pacman -Syu --noconfirm --needed "${Install[@]}"
 
-  pacman -Rsn --noconfirm "${Remove[@]}"
-  pacman -Syu --noconfirm --needed "${Install[@]}"
-  sleep 1
-
-  if [ "$need_mkinitcpio" = "yes" ] ; then
-    mkinitcpio -p linux-lts
+    # enable firewall service
     sleep 1
-    grub-mkconfig -o /boot/grub/grub.cfg
-  fi
-  systemctl enable ufw
+    systemctl enable ufw
+
+    # modify some dotfiles at $HOME
+    HomeSettings
 }
 
 Main
