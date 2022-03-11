@@ -1,5 +1,14 @@
 #!/bin/bash
 
+ERROR() { echo "==> Error: $1" ; }
+INFO()  { echo "==> Info: $1" ; }
+Check() {
+    "$@" || {
+        ERROR "'$*' failed"
+        return 1
+    }
+}
+
 BashrcConfig() {
     [ -n "$new_user" ] || return
 
@@ -119,15 +128,6 @@ RemovePackages() {
         file-roller
     )
     pacman -Rsn --noconfirm "${Remove[@]}"
-}
-
-ERROR() { echo "==> Error: $1" ; }
-INFO()  { echo "==> Info: $1" ; }
-Check() {
-    "$@" || {
-        ERROR "'$*' failed"
-        return 1
-    }
 }
 
 Setup3rdPartyRepos() {
