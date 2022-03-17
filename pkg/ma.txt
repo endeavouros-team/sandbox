@@ -178,7 +178,7 @@ EOF
         Check pacman -Syu
     fi
     if [ "$need_mirrorlist_pkg" = "yes" ] ; then
-        Check pacman --overwrite '/etc/pacman.d/mirrorlist-m' -Syu mirrorlist-m
+        Check pacman --overwrite '/etc/pacman.d/mirrorlist-m' -Syu --noconfirm mirrorlist-m
     fi
 }
 
