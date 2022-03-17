@@ -5,7 +5,7 @@ INFO()  { echo "==> Info: $1" ; }
 Check() {
     "$@" || {
         ERROR "'$*' failed"
-        return 1
+        exit 0
     }
 }
 
@@ -84,7 +84,6 @@ GetNewUserName() {
             new_user=$(cat /tmp/new_username.txt)
         else
             ERROR "new username not found. You can use command: $0 'your-username'"
-            exit 0
         fi
     else
         echo "new_user already set to '$new_user'"
@@ -107,15 +106,18 @@ InstallPackages() {
         atril
         vscodium-bin
         emacs
+        firefox-developer-edition
         gparted
         gufw
-        #kaffeine
-        #libreoffice-fresh
+        # kaffeine
+        libreoffice-fresh
+        linux-lts
+        linux-lts-headers
         llpp            # fast PDF reader for complex PDF files
         mpv
         ncdu
         pahis
-        #rcs
+        # rcs
         simple-scan
         solaar
         terminator
@@ -123,7 +125,7 @@ InstallPackages() {
         # m-m
         pac
     )
-    pacman -Syu --noconfirm --needed "${Install[@]}"
+    Check pacman -Syu --noconfirm --needed "${Install[@]}"
 }
 
 RemovePackages() {
@@ -132,7 +134,7 @@ RemovePackages() {
         parole
         file-roller
     )
-    pacman -Rsn --noconfirm "${Remove[@]}"
+    Check pacman -Rsn --noconfirm "${Remove[@]}"
 }
 
 Setup3rdPartyRepos() {
@@ -149,12 +151,12 @@ Setup3rdPartyRepos() {
     local need_mirrorlist_pkg=no
 
     if [ -z "$key_added" ] ; then
-        Check pacman-key --keyserver hkps://keyserver.ubuntu.com --recv-keys $m_key || return 0
-        Check pacman-key --lsign-key $m_key || return 0
+        Check pacman-key --keyserver hkps://keyserver.ubuntu.com --recv-keys $m_key
+        Check pacman-key --lsign-key $m_key
     fi
 
     if ! pacman -Q mirrorlist-m >& /dev/null  ; then
-        Check wget -O /etc/pacman.d/mirrorlist-m https://github.com/manuel-192/m-m/raw/master/PKGBUILDs/mirrorlist-m/mirrorlist-m || return 0
+        Check wget -O /etc/pacman.d/mirrorlist-m https://github.com/manuel-192/m-m/raw/master/PKGBUILDs/mirrorlist-m/mirrorlist-m
         need_mirrorlist_pkg=yes
     fi
 
@@ -173,45 +175,54 @@ EOF
         fi
     done
     if [ "$repo_added" = "yes" ] ; then
-        Check pacman -Syu || return 0
+        Check pacman -Syu
     fi
     if [ "$need_mirrorlist_pkg" = "yes" ] ; then
-        Check pacman --overwrite '/etc/pacman.d/mirrorlist-m' -Syu mirrorlist-m || return 0
+        Check pacman --overwrite '/etc/pacman.d/mirrorlist-m' -Syu mirrorlist-m
     fi
 }
 
-GrubConfig() {
-    local blacklists="$1"
+GrubDefaultEntry() {
     local entry="EndeavourOS, on linux"
+    sed -i /etc/default/grub -e "s|^\(GRUB_DEFAULT=\)0$|\1'$entry'|"
+    update_grub=yes
+}
+
+Blacklist() {
+    local blacklists="$1"
 
     sed -i /etc/default/grub \
-        -e "s|^\(GRUB_CMDLINE_LINUX_DEFAULT=\"\)|\1module_blacklist=$blacklists |" \
-        -e "s|^\(GRUB_DEFAULT=\)0$|\1'$entry'|"
+        -e "s|^\(GRUB_CMDLINE_LINUX_DEFAULT=\"\)|\1module_blacklist=$blacklists |"
     update_grub=yes
 }
 
 DriverSettings() {
+    local lspci=$(lspci -vnn)
     local graphics=$(echo "$lspci" | grep -Pw 'VGA|Display|3D')
     local rakkine=""
 
     if [ -n "$(echo "$graphics" | grep "8086:0046")" ] && [ -n "$(echo "$graphics" | grep "10de:0a2b")" ] ; then
-        rakkine=vanhus_lappis
+        rakkine=l1
     elif [ -n "$(echo "$graphics" | grep "8086:5917")" ] && [ -n "$(echo "$graphics" | grep "1002:6660")" ] ; then
-        rakkine=nevis_sylkky
+        rakkine=l2
     elif [ -n "$(echo "$graphics" | grep "10de:1d01")" ] ; then
-        rakkine=musis_poytis
+        rakkine=p1
+    elif [ -n "$(echo "$graphics" | grep "15ad:0405")" ] ; then
+        rakkine=v1
     fi
     case "$rakkine" in
-        vanhus_lappis)
-            GrubConfig nouveau
-            pacman -S --needed --noconfirm xf86-video-intel xorg-xbacklight
+        l1) Blacklist nouveau
+            GrubDefaultEntry
+            Check pacman -S --needed --noconfirm xf86-video-intel xorg-xbacklight
             ;;
-        nevis_sylkky)
-            GrubConfig radeon,amdgpu
-            pacman -S --needed --noconfirm xf86-video-intel xorg-xbacklight
+        l2) Blacklist radeon,amdgpu
+            GrubDefaultEntry
+            Check pacman -S --needed --noconfirm xf86-video-intel xorg-xbacklight
             ;;
-        musis_poytis)
-            GrubConfig i915,nouveau
+        p1) Blacklist nouveau,i915
+            GrubDefaultEntry
+            ;;
+        v1) GrubDefaultEntry
             ;;
     esac
 }
@@ -221,7 +232,6 @@ Main() {
     GetNewUserName
     local home="/home/$new_user"
     local update_grub=no
-    local lspci=$(lspci -vnn)
 
     Setup3rdPartyRepos
 
