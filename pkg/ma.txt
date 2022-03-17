@@ -195,11 +195,9 @@ DriverSettings() {
 
     if [ -n "$(echo "$graphics" | grep "8086:0046")" ] && [ -n "$(echo "$graphics" | grep "10de:0a2b")" ] ; then
         rakkine=vanhus_lappis
-    fi
-    if [ -n "$(echo "$graphics" | grep "8086:5917")" ] && [ -n "$(echo "$graphics" | grep "1002:6660")" ] ; then
+    elif [ -n "$(echo "$graphics" | grep "8086:5917")" ] && [ -n "$(echo "$graphics" | grep "1002:6660")" ] ; then
         rakkine=nevis_sylkky
-    fi
-    if [ -n "$(echo "$graphics" | grep "10de:1d01")" ] ; then
+    elif [ -n "$(echo "$graphics" | grep "10de:1d01")" ] ; then
         rakkine=musis_poytis
     fi
     case "$rakkine" in
