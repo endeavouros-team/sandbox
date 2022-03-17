@@ -21,6 +21,7 @@ alias cp='cp -i'
 alias mv='mv -i'
 alias rm='rm -i'
 alias ln='ln -i'
+alias PP='pac -Syu'
 
 alias nano='nano -l'
 alias pacdiff=eos-pacdiff
