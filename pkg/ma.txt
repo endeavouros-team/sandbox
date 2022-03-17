@@ -113,10 +113,14 @@ InstallPackages() {
         llpp            # fast PDF reader for complex PDF files
         mpv
         ncdu
+        pahis
         #rcs
         simple-scan
         solaar
         terminator
+
+        # m-m
+        pac
     )
     pacman -Syu --noconfirm --needed "${Install[@]}"
 }
@@ -175,10 +179,50 @@ EOF
     fi
 }
 
+GrubConfig() {
+    local blacklists="$1"
+    local entry="EndeavourOS, on linux"
+
+    sed -i /etc/default/grub \
+        -e "s|^\(GRUB_CMDLINE_LINUX_DEFAULT=\"\)|\1module_blacklist=$blacklists |" \
+        -e "s|^\(GRUB_DEFAULT=\)0$|\1'$entry'|"
+    update_grub=yes
+}
+
+DriverSettings() {
+    local graphics=$(echo "$lspci" | grep -Pw 'VGA|Display|3D')
+    local rakkine=""
+
+    if [ -n "$(echo "$graphics" | grep "8086:0046")" ] && [ -n "$(echo "$graphics" | grep "10de:0a2b")" ] ; then
+        rakkine=vanhus_lappis
+    fi
+    if [ -n "$(echo "$graphics" | grep "8086:5917")" ] && [ -n "$(echo "$graphics" | grep "1002:6660")" ] ; then
+        rakkine=nevis_sylkky
+    fi
+    if [ -n "$(echo "$graphics" | grep "10de:1d01")" ] ; then
+        rakkine=musis_poytis
+    fi
+    case "$rakkine" in
+        vanhus_lappis)
+            GrubConfig nouveau
+            pacman -S --needed --noconfirm xf86-video-intel xorg-xbacklight
+            ;;
+        nevis_sylkky)
+            GrubConfig radeon,amdgpu
+            pacman -S --needed --noconfirm xf86-video-intel xorg-xbacklight
+            ;;
+        musis_poytis)
+            GrubConfig i915,nouveau
+            ;;
+    esac
+}
+
 Main() {
     local new_user="$1"
     GetNewUserName
     local home="/home/$new_user"
+    local update_grub=no
+    local lspci=$(lspci -vnn)
 
     Setup3rdPartyRepos
 
@@ -191,6 +235,12 @@ Main() {
 
     # modify some dotfiles at $HOME
     HomeSettings
+
+    DriverSettings
+
+    if [ "$update_grub" = "yes" ] ; then
+        grub-mkconfig -o /boot/grub/grub.cfg
+    fi
 }
 
 Main "$@"
