@@ -28,7 +28,7 @@ alias pacdiff=eos-pacdiff
 
 alias poweroff='sync; poweroff'
 alias reboot='sync; reboot'
-alias update-grub='grub-mkconfig -o /boot/grub/grub.cfg'
+alias update-grub='sudo grub-mkconfig -o /boot/grub/grub.cfg'
 alias df='df -hT'
 alias md='vscode -n'                       # Visual Studio Code as a markdown editor
 alias grep='grep -n'
