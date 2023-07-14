@@ -162,23 +162,13 @@ Nouveau() {
 }
 
 Prime() {
-    case "$mode" in
-        nvidia)
-            PkgInstall nvidia-prime $p_nvidia $p_nvidia32 nvidia-hook ;;
-        nvidia-open)
-            PkgInstall nvidia-prime $p_nvidia_open $p_nvidia32 nvidia-hook ;;
-    esac
+    PkgInstall nvidia-prime $p_nvidia $p_nvidia32 nvidia-hook
     KernelParametersToBoot2
 }
 
 OnlyNvidia() {
     if [ "$series" = "$latest_from_arch" ] ; then
-        case "$mode" in
-            nvidia)
-                PkgInstall $p_nvidia $p_nvidia32 nvidia-hook ;;
-            nvidia-open)
-                PkgInstall $p_nvidia_open $p_nvidia32 nvidia-hook ;;
-        esac
+        PkgInstall $p_nvidia $p_nvidia32 nvidia-hook
     else
         PkgInstall $p_nvidia $p_nvidia32 # nvidia-hook
     fi
@@ -292,7 +282,7 @@ ListOptions() {
 
 Options() {
     local opts
-    local sopts="bfhnpqtv"
+    local sopts="bfhnopqtv"
     local lopts="32,bumblebee,conf,drivers,force,help,ignore,legacyrepo,listopts,listseries"
     lopts+=",nouveau,nvidia-open,prime,quiet,series:,test,version,it,id:"
 
@@ -305,19 +295,19 @@ Options() {
 
     while true ; do
         case "$1" in
-            -b | --bumblebee) mode=bumblebee ;;
-            -n | --nouveau)   mode=nouveau ;;
-            -p | --prime)     mode=prime ;;
-            --nvidia-open)    mode=nvidia-open ;;
-            -f | --force)     force=yes ;;
-            -q | --quiet)     quiet=yes ;;
-            -t | --test)      test=yes ;;
-            --conf)           create_conf=yes ;;
-            --ignore)         ignore_errors=yes ;;
-            --legacyrepo)     Setup3rdPartyRepo ;;
-            --32)             bit32=yes ;;
-            --series)         series="$2" ; shift ;;
-            --listopts)       ListOptions "$sopts" "$lopts" ; exit 0 ;;
+            -b | --bumblebee)   mode=bumblebee ;;
+            -n | --nouveau)     mode=nouveau ;;
+            -p | --prime)       mode=prime ;;
+            -o | --open)        mode=nvidia-open ;;
+            -f | --force)       force=yes ;;
+            -q | --quiet)       quiet=yes ;;
+            -t | --test)        test=yes ;;
+            --conf)             create_conf=yes ;;
+            --ignore)           ignore_errors=yes ;;
+            --legacyrepo)       Setup3rdPartyRepo ;;
+            --32)               bit32=yes ;;
+            --series)           series="$2" ; shift ;;
+            --listopts)         ListOptions "$sopts" "$lopts" ; exit 0 ;;
             --listseries)
                 [ -n "$series_now" ] || series_now=$(GetSeriesFromPacman)
                 if false ; then
@@ -333,7 +323,7 @@ Options() {
                 exit 0
                 ;;
             -v | --version)
-                [ -n "$PROGVERSION" ] || PROGVERSION=$(pacman -Q "$progname" | awk '{print $2}')
+                [ -n "$PROGVERSION" ] || PROGVERSION=$(pacman -Q "$progname" 2>/dev/null | awk '{print $2}')
                 echo "$progname $PROGVERSION"
                 exit 0
                 ;;
@@ -344,31 +334,38 @@ Options() {
             -h | --help)
                 cat <<EOF >&2
 
-$progname - help installing Nvidia graphics drivers
+$progname - help installing drivers for Nvidia GPU
 
 Usage: $progname [options]
+
 Options:
   -h, --help              This help.
-  -b, --bumblebee         Install bumblebee and Nvidia drivers for optimus cards.
+  -b, --bumblebee         Install bumblebee and Nvidia drivers for optimus cards (only very old cards).
   -f, --force             Force driver installation even if a nvidia card is not detected.
-  -n, --nouveau           Install nouveau driver (open source) instead of nvidia-dkms.
+  -n, --nouveau           Install (open source) nouveau driver instead of nvidia-dkms.
+  -o, --open              Install package nvidia-open-dkms instead of nvidia-dkms.
   -p, --prime             Install also prime render offload.
-  --nvidia-open           Install nvidia-open-dkms instead of nvidia-dkms.
   -q, --quiet             Suppress log messages.
   -t, --test              Test mode. Nothing in your system will be modified.
   -v, --version           Show version of this software.
   --32                    Install also support for 32-bit apps.
-  --conf                  Create also file $conf_file (might be needed on some systems).
-  --drivers               Show supported NVIDIA driver series for your card.
-  --ignore                Ignore all errors (useful for testing only).
-  --legacyrepo            Add a third party repository for legacy ($series_prev1 and $series_prev2 series) Nvidia drivers.
-  --listopts              List options supported by $progname.
+  --conf                  Create also file $conf_file (might be needed on some older systems).
+  --drivers               Show supported NVIDIA driver series number for your card.
   --listseries            List Nvidia driver versions supported by $progname.
+  --ignore                Ignore all errors (useful for testing only).
   --series                (Advanced) Use the given Nvidia driver version (for testing).
+  --listopts              List options supported by $progname.
+  --legacyrepo            (*1) Adds a third party repository for legacy ($series_prev1 and $series_prev2 series) Nvidia drivers.
 
-Notes:
-  - Option --legacyrepo is not currently supported. Instead, use 'yay' to install older Nvidia drivers.
-  - Without options --nvidia-open, -b and -n the nvidia-dkms package will be selected for install.
+Note:
+  - Package nvidia-dkms will be selected for install if none of options
+       --bumblebee
+       --nouveau
+       --open
+    is used.
+
+(*1) Option --legacyrepo is no more supported.
+     Instead, 'yay' can be used for installing legacy Nvidia drivers from the AUR.
 EOF
                 exit 0
                 ;;
@@ -458,8 +455,11 @@ ProperNvidiaPackages() {
 
     case "$series" in
         $latest_from_arch)
-            p_nvidia="nvidia-dkms nvidia-utils nvidia-settings"
-            p_nvidia_open="nvidia-open-dkms nvidia-utils nvidia-settings"
+            p_nvidia="nvidia-utils nvidia-settings"
+            case "$mode" in
+                nvidia-open) p_nvidia="nvidia-open-dkms $p_nvidia" ;;
+                nvidia | *)  p_nvidia="nvidia-dkms $p_nvidia" ;;
+            esac
             p_nvidia32="lib32-nvidia-utils"
             ;;
         $series_prev1 | $series_prev2)
@@ -548,7 +548,6 @@ Main()
     local PROGVERSION=""
     local pr_nvidia=()
     local p_nvidia=""
-    local p_nvidia_open=""
     local p_nvidia32=""
     local install=()
     local remove=()
@@ -581,7 +580,7 @@ Main()
 
     AllRemovables
 
-    [ -n "$PROGVERSION" ] || PROGVERSION=$(pacman -Q "$progname" | awk '{print $2}')
+    [ -n "$PROGVERSION" ] || PROGVERSION=$(pacman -Q "$progname" 2>/dev/null | awk '{print $2}')
     Info "Running: $progname v$PROGVERSION"
     Info "Command line: $progname $*"
     Info "Selected mode: $mode"
@@ -602,7 +601,7 @@ Main()
         bumblebee) ;;
         nouveau)   Nouveau ;;
         prime)     Prime   ;;
-        nvidia)    OnlyNvidia ;;
+        nvidia | nvidia-open)    OnlyNvidia ;;
     esac
 
     KeepsAndRemoves
