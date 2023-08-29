@@ -1,0 +1,36 @@
+# Maintainers: EndeavourOS <info@endeavouros.com>
+# Earlier maintainers: Portergos Linux <portergoslinux@gmail.com>
+
+pkgname=endeavouros-mirrorlist
+pkgver=23.8
+pkgrel=1.1
+pkgdesc="EndeavourOS mirrorlist"
+arch=('any')
+url=https://github.com/endeavouros-team/PKGBUILDS/tree/master/$pkgname
+_url="https://raw.githubusercontent.com/endeavouros-team/PKGBUILDS/master/$pkgname"
+
+license=('GPL3')
+options=(!strip !emptydirs)
+backup=("etc/pacman.d/$pkgname")  # to keep possibly ranked mirrorlist
+
+conflicts_aarch64=(endeavouros-arm-mirrorlist)
+conflicts_armv7h=(endeavouros-arm-mirrorlist)
+
+source=($_url/$pkgname)
+sha512sums=('9426f5eb6ace8bb711e23d6c59854119168dea5a8e0fb708d0cc92dd53d11c1fee99d386bcf1254660e38bac71ccc67fcad2d3ca5000ad686fc370cef5157334')
+
+_not_used_prepare() {
+    # Create endeavouros-mirrorlist.offline for offline install.
+    # Prefer mirrors that work well worldwide.
+
+    local offline="endeavouros-mirrorlist.offline-install"
+    local mirrorlist=endeavouros-mirrorlist
+
+    printf "# EndeavourOS mirrorlist for offline install only.\n\n" > $offline
+    cat $mirrorlist | sed -n '/^## Germany/,/^$/p'  >> $offline
+    cat $mirrorlist | sed -n '/^## [A-Z].*/,$p'     >> $offline
+}
+
+package() {
+ install -Dm644 "$srcdir/$pkgname" "$pkgdir/etc/pacman.d/$pkgname"
+}
