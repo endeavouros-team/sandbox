@@ -1,0 +1,44 @@
+# Maintainer: EndeavourOS <info@endeavouros.com>
+
+pkgname=eos-rankmirrors
+pkgver=2.25
+pkgrel=1
+pkgdesc="EndeavourOS mirror ranking tool"
+arch=('any')
+
+# url="https://github.com/endeavouros-team/PKGBUILDS/raw/master/$pkgname"
+url="https://raw.githubusercontent.com/endeavouros-team/PKGBUILDS/master/$pkgname"
+
+license=(GPL3)
+depends=(eos-bash-shared)
+options=(!strip !emptydirs)
+backup=(etc/$pkgname.conf)
+
+source=(
+  $url/$pkgname
+  $url/$pkgname.completion
+  $url/eos-rankmirrors-from-hook
+  $url/eos-rankmirrors.hook
+  $url/eos-rankmirrors.conf
+  $url/eos-rankmirrors.disabled
+)
+sha512sums=('40843f1c964c54b0e361d6a8ee078bfc9839f6009465d6747c8c9bbcec80aed61f355b18703fff2cc52de9a9ea73024ef33366d18627e1fa0cdabd22919d3599'
+            '07c4be1c228840104d3a8b3324a3a248ec82ad0204cb93b7d86ebb2768cd71a047e7e0204da10b1102bc13dfe26b7050a4257ed7e51dfac6bb499b46f5f406f7'
+            '77217f53bf9bce74a383574a95e97c1ee72074266cc83c0bbe0357777f9dfe8fa615ee26fb51f32afb2d4a8e4af2d15b24808a04be355a74d145e2137bd90a34'
+            '18a7ee30b2d58cc55fcd3c8a6adaacb99d2cfffb51020cdf60bb5c7f672a6e8ac870c0542f5227b0adcbed2582bf940bd868d9f7555277a5608e49e06840b99b'
+            '226111836a42e3540c714105813f64b285b3c48d41ea058e7339ba5b2de530a691d753b8f6d10984d260ed3288b01539715b00ad9bef4d808d21303c936837e7'
+            '06b77d1109fec45071dd2a3c1be07c225a5735961bd2818d0ccea608fef6e85bf4ae71d821427aa766d5b1934195282c1964965df7bd49602316b3bab6bf9824')
+
+package() {
+  local hooks=$pkgdir/usr/share/libalpm/hooks
+
+  install -Dm644 eos-rankmirrors.hook      $hooks/eos-rankmirrors.hook
+
+  install -Dm644 eos-rankmirrors.conf      $pkgdir/etc/eos-rankmirrors.conf
+  install -Dm644 eos-rankmirrors.disabled  $pkgdir/etc/eos-rankmirrors.disabled
+
+  install -Dm755 $pkgname                  $pkgdir/usr/bin/$pkgname
+  install -Dm755 eos-rankmirrors-from-hook $pkgdir/usr/bin/eos-rankmirrors-from-hook
+
+  install -Dm644 $pkgname.completion       $pkgdir/usr/share/bash-completion/completions/$pkgname
+}
