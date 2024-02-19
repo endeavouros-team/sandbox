@@ -1,0 +1,2 @@
+eos_is_in_chroot() { test "$(stat -c %d:%i /)" != "$(sudo stat -c %d:%i /proc/1/root/.)"; }
+
