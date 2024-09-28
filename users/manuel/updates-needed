@@ -1,0 +1,60 @@
+#!/bin/bash
+
+DIE() {
+    echo "error: $@" >&2
+    exit 1
+}
+
+Pkgdata() {  # output: pkgname version
+    expac -S "%r/%n %v" $(pacman -Slq $reponame) | grep ^$reponame/ | sed "s|^$reponame/||"
+}
+GetVer() {
+    local PKGBUILD="$1"
+    local -n _vervar="$2"
+
+    # To prevent conflicts, make all PKGBUILD variables local
+    local pkgname=() pkgver="" pkgrel="" epoch="" pkgdesc="" url="" license=()
+    local install="" changelog="" source=() validpgpkeys=() noextract=()
+    local cksums=() md5sums=() sha1sums=() sha224sums=() sha384sums=() sha512sums=() b2sums=()
+    local groups=() arch=() backup=() depends=() makedepends=() checkdepends=() optdepends=()
+    local conflicts=() provides=() replaces=() options=()
+    local source_x86_64=() cksums_x86_64=() md5sums_x86_64=() sha1sums_x86_64=()
+    local sha224sums_x86_64=() sha384sums_x86_64=() sha512sums_x86_64=() b2sums_x86_64=()
+    local depends_x86_64=() makedepends_x86_64=() checkdepends_x86_64=() optdepends_x86_64=()
+    local conflicts_x86_64=() provides_x86_64=() replaces_x86_64=()
+
+    source "$PKGBUILD" || DIE "$PKGBUILD not found"
+    [ "$epoch" ] && epoch+=":"
+    # echo "$epoch${pkgver}-$pkgrel"
+    _vervar="$epoch${pkgver}-$pkgrel"
+}
+Pkgbuilddata() {
+    local -n _retvar="$1"
+    [ -e assets.conf ] || DIE "assets.conf not found (wrong directory?)"
+    source assets.conf
+
+    local xx pkgdirname PKGBUILD version
+
+    _retvar=$(for xx in "${PKGNAMES[@]}" ; do
+                  pkgdirname=${xx%/aur}
+                  PKGBUILD="/data/code/EOS$PKGBUILD_ROOTDIR/$pkgdirname/PKGBUILD"
+                  # should use functions in assets.make...
+                  # version=$(GetVer "$PKGBUILD")
+                  GetVer "$PKGBUILD" version
+                  echo "$pkgdirname $version"
+              done)
+}
+
+Main() {
+    local reponame="$1"
+    local pkgdata=$(Pkgdata)
+    local pkgbuilddata=""
+
+    Pkgbuilddata pkgbuilddata
+
+    echo "$pkgdata" > HUU.pkg
+    echo "$pkgbuilddata" > HUU.pkgbuild
+    meld HUU.pkg HUU.pkgbuild
+}
+
+Main endeavouros
