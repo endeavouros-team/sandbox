@@ -5,12 +5,12 @@ DIE() {
     exit 1
 }
 
-Pkgdata() {  # output: pkgname version
+Pkgdata() {  # returns lines in form: pkgname version
+    local -r reponame="$1"
     expac -S "%r/%n %v" $(pacman -Slq $reponame) | grep ^$reponame/ | sed "s|^$reponame/||"
 }
 GetVer() {
     local PKGBUILD="$1"
-    local -n _vervar="$2"
 
     # To prevent conflicts, make all PKGBUILD variables local
     local pkgname=() pkgver="" pkgrel="" epoch="" pkgdesc="" url="" license=()
@@ -25,36 +25,55 @@ GetVer() {
 
     source "$PKGBUILD" || DIE "$PKGBUILD not found"
     [ "$epoch" ] && epoch+=":"
-    # echo "$epoch${pkgver}-$pkgrel"
-    _vervar="$epoch${pkgver}-$pkgrel"
+    echo "$epoch${pkgver}-$pkgrel"
 }
 Pkgbuilddata() {
-    local -n _retvar="$1"
+    local -r reponame="$1"
+
+    pushd "$reponame" >/dev/null || DIE "pushd '$reponame' failed"
     [ -e assets.conf ] || DIE "assets.conf not found (wrong directory?)"
     source assets.conf
 
     local xx pkgdirname PKGBUILD version
 
-    _retvar=$(for xx in "${PKGNAMES[@]}" ; do
-                  pkgdirname=${xx%/aur}
-                  PKGBUILD="/data/code/EOS$PKGBUILD_ROOTDIR/$pkgdirname/PKGBUILD"
-                  # should use functions in assets.make...
-                  # version=$(GetVer "$PKGBUILD")
-                  GetVer "$PKGBUILD" version
-                  echo "$pkgdirname $version"
-              done)
+    for xx in "${PKGNAMES[@]}" ; do
+        pkgdirname=${xx%/aur}
+        PKGBUILD="/data/code/EOS$PKGBUILD_ROOTDIR/$pkgdirname/PKGBUILD"
+        # should use functions in assets.make...
+        # version=$(GetVer "$PKGBUILD")
+        version=$(GetVer "$PKGBUILD")
+        echo "$pkgdirname $version"
+    done
+    popd >/dev/null
 }
 
 Main() {
     local reponame="$1"
-    local pkgdata=$(Pkgdata)
+    local pkgdata=""
     local pkgbuilddata=""
+    local ret=0
+    local diffs=""
+    local pkgs=""
+    local pkgdatafile=HUU.pkg
+    local pkgbuilddatafile=HUU.pkgbuild
 
-    Pkgbuilddata pkgbuilddata
+    Pkgdata "$reponame" > "$pkgdatafile"
+    Pkgbuilddata "$reponame" > "$pkgbuilddatafile"
 
-    echo "$pkgdata" > HUU.pkg
-    echo "$pkgbuilddata" > HUU.pkgbuild
-    meld HUU.pkg HUU.pkgbuild
+    diffs=$(diff "$pkgdatafile" "$pkgbuilddatafile")
+    ret=$?
+    if [ $ret -ne 0 ] ; then
+        if false ; then
+            pkgs=$(echo "$diffs" | grep "^> " | sed 's|> ||')
+            echo "package updates:"
+            echo -e "$pkgs\n"
+            echo "diffs:"
+            echo "$diffs"
+        else
+            /bin/meld "$pkgdatafile" "$pkgbuilddatafile"
+        fi
+    fi
+    rm -f "$pkgdatafile" "$pkgbuilddatafile"
 }
 
 Main endeavouros
