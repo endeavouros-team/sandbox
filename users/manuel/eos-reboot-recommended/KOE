@@ -1,0 +1,14 @@
+#!/bin/bash
+
+Main()
+{
+    local file=/tmp/foobar
+
+    sudo rm -f $file
+    sudo pacman -S --noconfirm         mesa #intel-ucode            # mesa
+    sudo pacman -S --noconfirm         intel-ucode      # mesa
+
+    [ -e $file ] && setsid emacs $file
+}
+
+Main "$@"

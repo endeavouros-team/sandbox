@@ -1,0 +1,73 @@
+#!/bin/bash
+
+DoNotify() {
+    local -r title="$1"
+    local -r msg="$2"
+    local icon=/usr/share/icons/Qogir/scalable/apps/system-reboot.svg
+    [ -e $icon ] || icon=system-reboot
+
+    local cmd=(
+        eos_notification_all           # function to notify all users
+        $icon                          # icon
+        critical                       # urgency
+        0                              # expire time (not used!)
+        "'EndeavourOS notification'"   # appname
+        "$title"                       # title
+        "$msg"                         # message
+        RED                            # message color on TTY
+    )
+    "${cmd[@]}"
+}
+
+WaitLoop() {
+    local seconds_left=$1
+    local -r sleeptime=1
+
+    while [ -e $lockfile ] ; do  # && sudo fuser $lockfile &> /dev/null ; do
+        echo "==> $FUNCNAME: $seconds_left $sleeptime" >> /tmp/foobar
+        sleep $sleeptime
+        ((seconds_left-=sleeptime))
+        [ $seconds_left -le 0 ] && return 1   # return 1 if max wait time is exceeded
+    done
+}
+
+Wait_before_notifying() {
+    systemctl disable --now eos-reboot-required.timer 2>/dev/null
+
+    echo "$FUNCNAME" >> /tmp/foobar
+
+    # Wait for all pacman-like processes to finish before giving a notification.
+    # Do this by detecting when the $lockfile disappears, but do not wait more
+    # than $REBOOT_MAX_TOTAL_WAIT seconds.
+
+    local -r lockfile=/var/lib/pacman/db.lck
+    local -r conffile=/etc/eos-reboot-required.conf
+    local REBOOT_MAX_TOTAL_WAIT=5          # can be configured in $conffile
+    local title="Reboot recommended!"
+    local msg="Reboot is recommended due to the upgrade of core system package(s)."
+    local loop_exit_code=0
+
+    [ -e $conffile ] && source $conffile
+    source /usr/share/endeavouros/scripts/eos-script-lib-yad --limit-icons || return
+
+    if true ; then
+        WaitLoop $REBOOT_MAX_TOTAL_WAIT || loop_exit_code=$?      # max seconds to wait before notifying about recommended reboot
+
+        if [ $loop_exit_code -ne 0 ] ; then
+            # wait time was exceeded
+            # sleep 2
+            # if [ -e $lockfile ] ; then
+
+            #if [ -e $lockfile ] && sudo fuser $lockfile &> /dev/null ; then
+            #     msg="Reboot is recommended, but another process is still using $lockfile. Please wait."
+            #    title="NOTE: please wait until all related processes have finished!"
+            #fi
+        fi
+        # sleep 1
+        DoNotify "$title" "$msg"
+    else
+        DoNotify "$title" "$msg"
+    fi
+}
+
+Wait_before_notifying "$@"
