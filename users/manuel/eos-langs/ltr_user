@@ -1,7 +1,6 @@
 #!/bin/bash
 
-MyApp() {
-    source translations__$(eos-get-lang) || return 1
+MyApp1() {
     local key2 val out
     for key2 in "${!_LTR[@]}" ; do
         val=${_LTR[$key2]}
@@ -19,4 +18,20 @@ MyApp() {
     key2=""
 }
 
-MyApp "$@"
+#printf2() { printf "$@" >&2 ; }
+
+MyApp2() {
+    local DE=Xfce
+    local file=file.txt
+
+    echo "$(_ltr cal_info2 $DE)"
+    echo "$(_ltr _commonphrase_not_found "$file")"
+}
+
+Main() {
+    source translations__$(./eos-get-lang) || return 1
+    # MyApp1
+    MyApp2 "$@"
+}
+
+Main "$@"

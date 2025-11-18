@@ -16,18 +16,22 @@ source=(
     $_url_dl/eos-get-lang
     $_url_dl/translations__common
     $_url_dl/translations__fi
+    $_url_dl/translations__en
 )
-sha512sums=('19a1987f0530db8e6b26c55acd0be88a391cefed749e31dcc7674d2f449763728a3c55aa0e1f4439ae5b663b21a44c97b1c44edc68c50a2bee2d5a123130c0d7'
-            '03008782f756821c99fcc9d99586173e54ad40d42482730d7b34bf5589371e9a137ecd3695afa6976c5e95b8d9bb63e6f0f1e9b603e5ac7fc91838355463e44c')
+sha512sums=('f15a703c69b275cf87fa3a5e929ca7f9ca8f54ef8ae98ee5ff35c7b441df2ea04e96c4de9568a31441954ef805902ef15fa3b56bc9357035c7c85e2cf9791ec2'
+            'e687de3eef681b8858d2a0d2aabcea03129ac53173373ef0c76319962a625688f206b97093cd9cee2a28b5734fe94e740a50648d468b57b1dee5b3030a986d38'
+            '00286bcdbe0fbb362ac6443996dcd761faa7e8184d62cc6e53d20162c5cc165303d0044d16a5c5f93a9428b02c7789b94740981fb612a6b93be573cf4ced7f2b'
+            'b29fb6cbf5deb7414b5b99a994b26c4fbf31bf82f87b445c62d640aa4878b1a1c9920b3e114ee88f6198a02b5b4be73951d9f7bdd5b227478f272c5e6b230a35')
 
 package() {
   local src filename
 
   for src in "${source[@]}" ; do
       filename="${src##*/}"
-      case "" in
-          eos-get-lang) install -Dm755 "$filename"   "$pkgdir/usr/bin/$filename" ;;
-          *)      install -Dm644 "$filename"         "$pkgdir/usr/share/endeavouros/scripts/$filename" ;;
+      case "$filename" in
+          /*) ;;
+          translations__*)   install -Dm644 "$filename"   "$pkgdir/usr/share/endeavouros/scripts/$filename" ;;
+          *)                 install -Dm755 "$filename"   "$pkgdir/usr/bin/$filename" ;;
       esac
   done
 }

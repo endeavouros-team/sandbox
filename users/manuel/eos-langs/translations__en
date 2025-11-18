@@ -16,6 +16,6 @@ source /usr/share/endeavouros/scripts/translations__common || exit 1
 # below this line.
 
 declare -A _LTR=(
-    cal_info2                     "<b>Offline</b> asentaa %s-työpöydän.\nNettiyhteyttä ei tarvita.\n\n"
-    _commonphrase_not_found       "%s ei saatavilla"
+    cal_info2                     "<b>Offline</b> method gives you the %s desktop.\nInternet connection is not needed.\n\n"
+    _commonphrase_not_found       "%s not found"
 )

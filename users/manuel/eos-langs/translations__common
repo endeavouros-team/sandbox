@@ -1,5 +1,7 @@
 #!/bin/bash
 
-ltr() {
-    printf "%s" "${_LTR[$1]}"   # $1 = key
+_ltr() {
+    local key="$1"
+    shift
+    printf "${_LTR[$key]}" "$@"
 }
