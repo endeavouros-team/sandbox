@@ -1,0 +1,6 @@
+#!/bin/bash
+
+Main() {
+    echo ${LANG::2}   # TODO!
+}
+Main "$@"

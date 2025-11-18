@@ -1,0 +1,33 @@
+#!/bin/bash
+# Maintainer: EndeavourOS-Team <info@endeavouros.com>
+
+pkgname=eos-langs
+pkgdesc="Translation support for many apps"
+pkgver=25.11
+pkgrel=1
+arch=('any')
+license=('GPL')
+depends=(bash)
+optdepends=()
+url=https://github.com/endeavouros-team/PKGBUILDS/tree/master/$pkgname
+_url_dl=https://raw.githubusercontent.com/endeavouros-team/PKGBUILDS/master/$pkgname
+
+source=(
+    $_url_dl/eos-get-lang
+    $_url_dl/translations__common
+    $_url_dl/translations__fi
+)
+sha512sums=('19a1987f0530db8e6b26c55acd0be88a391cefed749e31dcc7674d2f449763728a3c55aa0e1f4439ae5b663b21a44c97b1c44edc68c50a2bee2d5a123130c0d7'
+            '03008782f756821c99fcc9d99586173e54ad40d42482730d7b34bf5589371e9a137ecd3695afa6976c5e95b8d9bb63e6f0f1e9b603e5ac7fc91838355463e44c')
+
+package() {
+  local src filename
+
+  for src in "${source[@]}" ; do
+      filename="${src##*/}"
+      case "" in
+          eos-get-lang) install -Dm755 "$filename"   "$pkgdir/usr/bin/$filename" ;;
+          *)      install -Dm644 "$filename"         "$pkgdir/usr/share/endeavouros/scripts/$filename" ;;
+      esac
+  done
+}

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+ltr() {
+    printf "%s" "${_LTR[$1]}"   # $1 = key
+}

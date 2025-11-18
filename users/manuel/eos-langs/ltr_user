@@ -1,0 +1,22 @@
+#!/bin/bash
+
+MyApp() {
+    source translations__$(eos-get-lang) || return 1
+    local key2 val out
+    for key2 in "${!_LTR[@]}" ; do
+        val=${_LTR[$key2]}
+        #echo -e "key2 = '$key2'\tval = '$val'"
+        #printf -v out "%s:\t$val\n" "$key2" "$XDG_CURRENT_DESKTOP"
+        printf -v out "%s:\t%s\n" "$key2" "$val"
+        printf "$out" "$XDG_CURRENT_DESKTOP"
+    done
+    echo ""
+    key2=hello_world
+    printf "%s:\t${_LTR[$key2]}\n" "$key2" "$USER"
+    printf "%s:\t$(ltr "$key2")\n" "$key2" $USER
+    key2=whats_up2
+    printf "%s:\t$(ltr "$key2")\n" "$key2" "$USER"
+    key2=""
+}
+
+MyApp "$@"
