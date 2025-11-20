@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Convert curl (or wget) return code to human friendly text.
+# See 'man curl' (or 'man wget') for more info.
+# Accept parameters exitcode(s) and appname in any order.
+# Default appname is curl.
+
+echo2() { echo -e "$@" >&2; }
+Exit()  { echo2 "$1"; exit "$2"; }
+
+Help() {
+    cat <<EOF >&2
+Usage:      $progname exit-code(s) [curl | wget]
+exit-code:  Exit code from curl (default) or wget.
+EOF
+    [ "$1" ] && exit $1
+}
+
+ExitCodeToString() {
+    local -r progname=${0##*/}
+    local app=curl
+    local codes=()
+    local exitcode
+    local verbose=no
+    local -r sep="|"
+    local out
+
+    while [ "$1" ] ; do
+        case "$1" in
+            curl   | wget)     app="$1" ;;
+            */curl | */wget)   app="${1##*/}" ;;
+            -v | --verbose)    verbose=yes ;;
+            *)                 [ -z "${1//[0-9]/}" ] && codes+=("$1") || Help 125 ;;
+        esac
+        shift
+    done
+    for exitcode in "${codes[@]}" ; do
+        out=$(LANG=C MANWIDTH=300 man $app 2>/dev/null | grep -E "^[ ]+$exitcode[ ]+" | sed -E "s|^[ ]+$exitcode[ ]+||")
+        if [ "$out" ] ; then
+            [ $verbose = yes ] && echo -n "$app$sep$exitcode$sep"
+            echo "$out"
+        fi
+    done | column -t -s"$sep"
+}
+
+ExitCodeToString "$@"
