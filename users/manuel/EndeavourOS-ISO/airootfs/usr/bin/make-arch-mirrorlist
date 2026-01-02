@@ -1,0 +1,96 @@
+#!/bin/bash
+
+# Generate an Arch mirrorlist file from file mirrors-arch-latest-active.
+
+echo2() { echo -e "$@" >&2; }
+
+Prepare() {
+    local info=$(/bin/reflector --list-countries 2>/dev/null | /bin/sed -E '/^Country[ ]+Code/,/^-----/'d)
+    local codes=(WW $(echo "$info" | sed -E 's|(.*[a-z])[ ]+([A-Z][A-Z])[ ]+[0-9]+|\2|'))
+    local countries 
+    readarray -t countries <<< $(echo "Worldwide"; echo "$info" | sed -E 's|(.*[a-z])[ ]+([A-Z][A-Z])[ ]+[0-9]+|\1|')
+
+    local code country ix count=${#codes[*]}
+
+    echo -e "#!/bin/bash\nreflector_countries=(" > "$dbfile"
+
+    for ((ix=0; ix < count; ix++ )) ; do
+        code=${codes[$ix]}
+        country=${countries[$ix]}
+        echo "    [${code,,}]='$country'" >> "$dbfile"
+    done
+    echo ")" >> "$dbfile"
+}
+
+CC2name() {
+    echo "${reflector_countries[$1]}"
+}
+
+Options() {
+    case "$1" in
+        -h | --help)        echo2 "Usage:   $progname [--help|-h | --update-db|-u]"
+                            echo2 "Options:"
+                            echo2 "         -h, --help         This help."
+                            echo2 "         -u, --update-db    Update the country database (if the list of mirror countries has changed)."
+                            exit 0
+                            ;;
+        -u | --update-db)   Prepare ;;
+        *)                  [ -e "$dbfile" ] || Prepare ;;
+    esac
+}
+
+Main() {
+    local -r progname=${0##*/}
+    local -r confdir="$HOME/.config/$progname"
+    local -r dbfile="$confdir/arch-countries"
+    declare -A reflector_countries
+
+    mkdir -p "$confdir"
+
+    Options "$@"
+
+    ###########################################################################
+
+    source "$dbfile"
+
+    local countrycode="$(show-location-info --tolower country)"
+    local mirrorlistdata="$confdir/mirrors-arch-latest-active"
+    local mirrors_ww=$(cat "$mirrorlistdata" | sed -n "/^## Worldwide$/,/^$/p"     | sed -E 's|^#(Server = )|\1|')
+    local mirrors_de=$(cat "$mirrorlistdata" | sed -n "/^## Germany$/,/^$/p"       | sed -E 's|^#(Server = )|\1|')
+    local mirrors_us=$(cat "$mirrorlistdata" | sed -n "/^## United States$/,/^$/p" | sed -E 's|^#(Server = )|\1|')
+    local mirrors_country=""
+    local mirrorlist="$confdir/mirrorlist"
+    local country=""
+
+    printf "" > "$mirrorlist"
+
+    if [ "$countrycode" ] ; then
+        country=$(CC2name $countrycode)
+        mirrors_country=$(cat "$mirrorlistdata" | sed -n "/^## ${country}$/,/^$/p" | sed -E 's|^#(Server = )|\1|')
+    fi
+    case "$countrycode" in
+        "")   # this country does not currently have Arch mirrors
+            echo "$mirrors_ww" >> "$mirrorlist"
+            echo "$mirrors_de" >> "$mirrorlist"
+            echo "$mirrors_us" >> "$mirrorlist"
+            ;;
+        de | us | fi)
+            mirrors_country=$(echo "$mirrors_country" | grep -v "^Server = http://")
+            echo "$mirrors_country" >> "$mirrorlist"
+            echo "$mirrors_ww"      >> "$mirrorlist"
+            ;;
+        *)
+            echo "$mirrors_country" >> "$mirrorlist"
+            echo "$mirrors_ww"      >> "$mirrorlist"
+            echo "$mirrors_de"      >> "$mirrorlist"
+            echo "$mirrors_us"      >> "$mirrorlist"
+            ;;
+    esac
+
+    touch /tmp/mirrorlist
+    chmod go-rwx /tmp/mirrorlist
+    rankmirrors -vp "$mirrorlist" > /tmp/mirrorlist
+    cat /tmp/mirrorlist
+}
+
+Main "$@"

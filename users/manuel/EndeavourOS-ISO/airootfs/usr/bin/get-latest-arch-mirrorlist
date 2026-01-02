@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# Fetch the list of currently active mirrors from the Arch web site.
+# Save the list into file $file.
+
+echo2()  { echo "$@" >&2; }
+WARN()   { echo2 "==> $progname: warning: $1"; }
+DIE()    { echo2 "==> $progname: error: $1"; exit 1; }
+ASSERT() { "$@" || DIE "'$*' failed."; }
+
+Main()
+{
+    local -r progname=${0##*/}
+    local -r url=https://archlinux.org/mirrorlist/all/   # mirrors active at the time listed in the file, both https and http
+    local -r file=mirrors-arch-latest-active
+    local -r fetched=$file.tmp
+    local operation=update
+
+    if wget --timeout=30 -qO "$fetched" "$url" ; then
+        if [ -e "$file" ] ; then
+            ASSERT rm -f "$file".bak
+            ASSERT mv "$file" "$file".bak
+        else
+            operation=create
+        fi
+        ASSERT mv "$fetched" "$file"
+        echo2 "==> ${operation^}d $file."
+        exit 0
+    else
+        rm -f "$fetched"
+        [ -e "$file" ] || operation=create
+        WARN "could not $operation $file."
+        exit 1
+    fi
+}
+
+Main "$@"
