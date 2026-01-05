@@ -1,0 +1,199 @@
+#!/bin/bash
+
+echo2()  { echo -e "$@" >&2; }
+WARN()   { echo2 "==> $progname: warning: $1"; }
+DIE()    { echo2 "==> $progname: error: $1"; exit 1; }
+ASSERT() { "$@" || DIE "'$*' failed."; }
+
+FetchMirrors() {
+    generation_phase=yes
+
+    local -r progname=${0##*/}
+    local -r url=$active_mirrors_url/
+    local -r file=$mirrordata
+    local -r fetched=$file.tmp
+    local operation=update
+
+    if wget --timeout=30 -qO "$fetched" "$url" ; then
+        if [ -e "$file" ] ; then
+            ASSERT rm -f "$file".bak
+            ASSERT mv "$file" "$file".bak
+        else
+            operation=create
+        fi
+        ASSERT mv "$fetched" "$file"
+        echo2 "==> ${operation^}d $file."
+    else
+        rm -f "$fetched"
+        if [ ! -e "$file" ] ; then
+            operation=create
+            WARN "could not $operation $file."
+            return 1
+        fi
+    fi
+    return 0
+}
+
+FetchCountries() {
+    generation_phase=yes
+
+    local info=$(/bin/reflector --list-countries 2>/dev/null | /bin/sed -E '/^Country[ ]+Code/,/^-----/'d)
+    local codes=(WW $(echo "$info" | sed -E 's|(.*[a-z])[ ]+([A-Z][A-Z])[ ]+[0-9]+|\2|'))
+    local countries 
+    readarray -t countries <<< $(echo "Worldwide"; echo "$info" | sed -E 's|(.*[a-z])[ ]+([A-Z][A-Z])[ ]+[0-9]+|\1|')
+
+    local code country ix count=${#codes[*]}
+
+    echo -e "#!/bin/bash\nreflector_countries=(" > "$dbfile"
+
+    for ((ix=0; ix < count; ix++ )) ; do
+        code=${codes[$ix]}
+        country=${countries[$ix]}
+        echo "    [${code,,}]='$country'" >> "$dbfile"
+    done
+    echo ")" >> "$dbfile"
+    echo2 "==> created $dbfile."
+}
+
+CC2name() {
+    echo "${reflector_countries[$1]}"
+}
+
+ExtractCountryMirrors() {
+    local countryname="$1"
+    local mirrors_in_country=$(cat "$mirrordata" | sed -n "/^## ${countryname}$/,/^$/p" | sed -E 's|^#(Server = )|\1|')
+    # include wanted protocols
+    for pp in "${protocols[@]}" ; do
+        echo "$mirrors_in_country" | grep "$pp://"
+    done
+}
+
+HandleCountry() {
+    local cc="$1"
+    local countries_handled=()
+    if printf "%s\n" "${countries_handled[@]}" | grep "$cc" >/dev/null ; then
+        return
+    else
+        countries_handled+=("$cc")
+        local cn=$(CC2name $cc)
+        if [ "$cn" ] ; then
+            ExtractCountryMirrors "$cn" >> "$tmplist"
+        else
+            WARN "'$arg': no active Arch mirrors found for this country"
+        fi
+    fi
+}
+
+Parameters() {
+    local arg
+    for arg in "$@" ; do
+        case "$arg" in
+            --no-local)        local_country=no ;;
+            --http | --rsync)  protocols+=(${arg:2}) ;;
+            --sequential)      parallel=no ;;
+            --update)          rm -f $mirrordata $dbfile ;;
+            --nosave)          save=no ;;
+            -h | --help)
+                cat <<EOF >&2
+Usage:   $progname [options]
+Options: -h, --help    This help.
+         --no-local    Do not include mirrors from the current country.
+         --sequential  Rank mirrors sequentially (slower) instead of in parallel (faster).
+         --update      Update support data files that will be stored in the ISO.
+         --nosave      Do not save mirrorlist to $target.
+         --http        Include mirrors with http://
+         --rsync       Include mirrors with rsync://
+Mirrors with https:// are included by default.
+EOF
+                exit 0
+                ;;
+            -*) ;;
+            *) countries_given+=("$arg") ;;
+        esac
+    done
+}
+
+Main() {
+    local -r progname=${0##*/}
+    local -r active_mirrors_url=https://archlinux.org/mirrorlist/all     # mirrors active at the time listed in the file, both https and http
+    local -r mirrordata=arch-mirrors-active                              # support file: active Arch mirrors in various countries
+    local -r dbfile=arch-countries                                       # support file: mappings between country-code and country-name
+
+    local save=yes
+    local generation_phase=no                                            # generating support files or not?
+    local parallel=yes                                                   # ranking mirrors in pararallel or not?
+    local local_country=yes                                              # include local country in the mirrorlist or not?
+    local protocols=(https)                                              # list of supported protocols
+    local countries_given=()                                             # list of user given countries which have mirrors to include
+    local target=/etc/pacman.d/mirrorlist
+    local cleanups=()
+
+    Parameters "$@"
+
+    eos-connection-checker || DIE "no internet connection."
+
+    [ -e $mirrordata ] || FetchMirrors
+    [ -e $dbfile ]     || FetchCountries
+
+    if [ $generation_phase = yes ] ; then
+        echo2 "==> Generation ended."
+        exit 0
+    fi
+
+    declare -A reflector_countries
+    source "$dbfile"
+
+    local tmplist=$(mktemp)                           # collect mirrors that user wanted here
+    local mirrorlist=$(mktemp)
+
+    cleanups+=($tmplist)
+    [ $save = yes ] && cleanups+=($mirrorlist)
+
+    chmod go-rwx $tmplist
+
+    # if user wanted, add the current country into $tmplist
+    if [ $local_country = yes ] ; then
+        argl=$(show-location-info --tolower country)
+        HandleCountry $argl
+    fi
+
+    # add user given countries into $tmplist
+    local arg argl                                    # = $arg with lower case letters
+    for arg in "${countries_given[@]}" ; do
+        argl=${arg,,}
+        case "$argl" in
+            [a-z][a-z]) HandleCountry $argl ;;
+            *)          DIE "'$arg' not supported" ;;
+        esac
+    done
+
+    local opt="-v"
+    case "$parallel" in
+        yes) opt+="p" ;;
+    esac
+    echo2 "==> Ranking mirrors."
+    {
+        echo -e "### Mirror list generated by $progname at $(date "+%Y-%m-%d %X")"
+        echo -e "### Command: $progname $*\n"
+        ./rankmirrors-arch $opt $tmplist | column -t -s'|'
+    } | tee $mirrorlist
+    echo2 "==> Mirrors ranked."
+
+    if [ $save = yes ] ; then
+        echo2 "==> Updating $target:"
+        sudo rm -f $target.bak
+        sudo mv $target $target.bak
+        sudo cp -iv $mirrorlist $target
+        sudo chmod go+r $target
+    else
+        # less $mirrorlist
+        echo2 "==> $target not updated."
+    fi
+    Cleanup
+}
+
+Cleanup() {
+    [ "$cleanups" ] && rm -f "${cleanups[@]}"
+}
+
+Main "$@"
