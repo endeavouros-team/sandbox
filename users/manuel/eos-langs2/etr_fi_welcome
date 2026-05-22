@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Finnish translations for app welcome-test.
+#
+# Syntax for the entries in ETR_ARR:
+#       key  "translation"
+# where
+#       key                 Identifies the translation item.
+#       "translation"       The translation string for the particular key.
+#                           Use %s as the placeholder for parameters.
+# Example:
+#      declare -A ETR_ARR=(
+#          cal_info2                     "<b>Offline</b> method gives you the %s desktop.\nInternet connection is not needed.\n\n"
+#          _commonphrase_not_found       "%s not found"
+#      )
+
+declare -A ETR_ARR=(
+    cal_info2                     "<b>Offline</b> asentaa %s-työpöydän.\nInternet-yhteyttä ei tarvita.\n\n"
+    _commonphrase_not_found       "%s ei saatavilla"
+)

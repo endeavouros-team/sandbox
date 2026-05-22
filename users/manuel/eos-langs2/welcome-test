@@ -1,0 +1,39 @@
+#!/bin/bash
+
+MyApp2() {
+    local DE=Xfce
+    local file=file.txt
+
+    echo "$(ETR cal_info2 $DE)"
+    echo "$(ETR _commonphrase_not_found "$file")"
+}
+
+Main() {
+    source /usr/share/endeavouros/translations/etr-support welcome || exit 1
+
+    MyApp2 "$@"
+}
+
+Main "$@"
+
+
+
+#####################################################################
+
+# MyApp1() {
+#     local key2 val out
+#     for key2 in "${!ETR_ARR[@]}" ; do
+#         val=${ETR_ARR[$key2]}
+#         #echo -e "key2 = '$key2'\tval = '$val'"
+#         #printf -v out "%s:\t$val\n" "$key2" "$XDG_CURRENT_DESKTOP"
+#         printf -v out "%s:\t%s\n" "$key2" "$val"
+#         printf "$out" "$XDG_CURRENT_DESKTOP"
+#     done
+#     echo ""
+#     key2=hello_world
+#     printf "%s:\t${ETR_ARR[$key2]}\n" "$key2" "$USER"
+#     printf "%s:\t$(ltr "$key2")\n" "$key2" $USER
+#     key2=whats_up2
+#     printf "%s:\t$(ltr "$key2")\n" "$key2" "$USER"
+#     key2=""
+# }

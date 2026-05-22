@@ -1,0 +1,17 @@
+#!/bin/bash
+
+DIE() { echo "$progname: error: $1" >&2; exit 1; }
+
+Main()
+{
+    local progname=${0##*/}
+    local appname="$1"
+    local lang="$2"         # optional
+
+    [ "$appname" ] || DIE "appname missing"
+    [ "$lang" ]    || lang=$(eos-get-lang)
+
+    source "/usr/share/endeavouros/translations/translation-${lang}-${appname}" || DIE "initialization failed"
+}
+
+Main "$@"

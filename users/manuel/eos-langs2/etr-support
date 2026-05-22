@@ -1,0 +1,18 @@
+#!/bin/bash
+
+ETR() {
+    local key="$1"
+    shift
+    printf "${ETR_ARR[$key]}" "$@"
+}
+
+_etr_get_lang_() {
+    case "$LANG" in
+        nl_NL* | pt_BR* | uk_UA* | zh_CN* | zh_HK* | zh_SG* | zh_TW*)
+            echo ${LANG::4} ;;
+        *)
+            echo ${LANG::2} ;;
+    esac
+}
+
+source /usr/share/endeavouros/translations/etr_$(_etr_get_lang_)_"$1" || exit 1

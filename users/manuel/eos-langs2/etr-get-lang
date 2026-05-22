@@ -1,0 +1,8 @@
+#!/bin/bash
+
+case "$LANG" in
+    nl_NL* | pt_BR* | uk_UA* | zh_CN* | zh_HK* | zh_SG* | zh_TW*)
+        echo ${LANG::4} ;;
+    *)
+        echo ${LANG::2} ;;
+esac

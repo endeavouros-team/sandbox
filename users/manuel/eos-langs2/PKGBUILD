@@ -1,0 +1,63 @@
+#!/bin/bash
+# Maintainer: EndeavourOS-Team <info@endeavouros.com>
+
+pkgname=eos-langs
+pkgdesc="Translation support for many apps"
+pkgver=25.12
+pkgrel=1
+arch=('any')
+license=('GPL')
+depends=(bash)
+optdepends=()
+url=https://github.com/endeavouros-team/PKGBUILDS/tree/master/$pkgname
+_url_dl=https://raw.githubusercontent.com/endeavouros-team/PKGBUILDS/master/$pkgname
+
+source=(
+    # $_url_dl/etr-get-lang
+    # $_url_dl/etr-lang-init
+    $_url_dl/etr-support
+
+    $_url_dl/etr_fi_welcome
+    $_url_dl/etr_en_welcome
+)
+sha512sums=('0030ff81d89b2f44ed790b2f4d0c652e843d3a84ce8da35833bd282a98fdff98215a932049e37a3f8835a6110b76be4cfb0d1a2b51bb801a94d758f0da5befc0'
+            '5d731d7702702dfb29a7dd536bf588891d457afd3e0ae4f829b52dc821a02ccf8a2ca4e4e5919a39f382b245a7a629863333cc368cf27b4945870b9448a0f4e4'
+            '4b85f5e904381d8d83891c68767db26ce200ae59b2a5095c1c21d686f70d6f6a306ac8be616a9268cbdc187c9a573bfefc6f5cc0094398d4400c26245104638d')
+
+package() {
+    local src filename
+
+    for src in "${source[@]}" ; do
+        filename="${src##*/}"
+        case "$filename" in
+            etr-support)   install -Dm644 "$filename"   "$pkgdir/usr/share/endeavouros/translations/$filename" ;;
+            etr_*_*)       install -Dm644 "$filename"   "$pkgdir/usr/share/endeavouros/translations/$filename" ;;
+            *)             install -Dm755 "$filename"   "$pkgdir/usr/bin/$filename" ;;
+        esac
+    done
+}
+
+
+#########################################################################################################
+#    cat <<EOF > $headfile
+#!/bin/bash
+
+# All translations need the following line:
+# source /usr/share/endeavouros/translations/etr-support || exit 1
+
+# The ETR_ARR (associative) array below contains all English translations for this app.
+# Each "entry" in ETR_ARR consists of two elements: "key" and "translation-string".
+# Technically, the "key" is used as the index to the associative array ETR_ARR.
+# Then ETR_ARR[key] becomes a translation-string.
+# The key should not include white spaces.
+
+# The translation-string will be used as the format parameter to printf.
+# So the translation-string may include one or more %s like placeholders for additional parameters.
+#
+# When writing a new translation it is easiest to copy the ETR_ARR array entries from
+# the English translation file (translations__en) to a new file
+# (e.g. translations__de for German translations) and translate every "entry" in ETR_ARR
+# below this line.
+
+# declare -A ETR_ARR=(
+# EOF
